@@ -4,6 +4,8 @@ import javafx.animation.RotateTransition;
 import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 
+import javafx.geometry.Insets;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -24,6 +26,7 @@ public class JavaFXTemplate extends Application {
     private static final String secondary_orange = "orange";
     private static final String background_gold = "#D0BA6B";
     private static final String secondary_red = "#B30400";
+    private boolean isNewLook = false;
 
 
 	public static void main(String[] args) {
@@ -37,21 +40,18 @@ public class JavaFXTemplate extends Application {
 
     private GridPane createGridPane(){
         GridPane grid = new GridPane();
-
         grid.setVgap(5);
         grid.setHgap(5);
 
         int num = 1;
-
         for (int row = 0; row < 8; row++){
             for (int col = 0; col < 10; col++){
                 Button numButton = new Button(String.valueOf(num++));
-                numButton.setPrefSize(50, 50);
-
+                numButton.setPrefSize(35, 35);
 
                 String unselectedStyle =
                         "-fx-background-color: " + UNSELECTED_COLOR + ";" +
-                                "-fx-font-size: 18px;" +
+                                "-fx-font-size: 12px;" +
                                 "-fx-font-weight: bold;" +
                                 "-fx-text-fill: white;" +
                                 "-fx-border-color: orange;" +
@@ -61,7 +61,7 @@ public class JavaFXTemplate extends Application {
 
                 String selectedStyle =
                         "-fx-background-color: " +  SELECTED_COLOR + ";" +
-                                "-fx-font-size: 18px;" +
+                                "-fx-font-size: 12px;" +
                                 "-fx-font-weight: bold;" +
                                 "-fx-text-fill: white;" +
                                 "-fx-border-color: orange;" +
@@ -70,7 +70,9 @@ public class JavaFXTemplate extends Application {
                                 "-fx-border-radius: 50;";
                 numButton.setStyle(unselectedStyle);
 
+                boolean roundStarted = false;
                 numButton.setOnAction(e-> {
+                    // also need to check if the game is not in progress, cant change once the round starts
                     // Check if the button currently contains the UNSELECTED_COLOR style
                     if (numButton.getStyle().contains(UNSELECTED_COLOR)) {
                         numButton.setStyle(selectedStyle);
@@ -78,11 +80,9 @@ public class JavaFXTemplate extends Application {
                         numButton.setStyle(unselectedStyle);
                     }
                 });
-
                 grid.add(numButton, col, row);
             }
         }
-
         return grid;
     }
 
@@ -171,6 +171,14 @@ public class JavaFXTemplate extends Application {
         alert.showAndWait();
     }
 
+//    private void applyTheme(BorderPane root){
+//        String bgColor = isNewLook ? background_gold : background_purple;
+//        String textColor = isNewLook ? "black" : "white";
+//
+//        root.setStyle("-fx-background-color: " + bgColor + ";");
+//
+//    }
+
     private MenuBar createMenuBar(Stage stage, BorderPane root){
         MenuBar menuBar = new MenuBar();
         Menu menu = new Menu("Menu Options (Click ▼)");
@@ -192,7 +200,22 @@ public class JavaFXTemplate extends Application {
         // Attach event handlers
         rulesItem.setOnAction(e -> showRulesDialog());
         oddsItem.setOnAction(e -> showOddsDialog());
-        newLook.setOnAction(e -> root.setStyle("-fx-background-color: " + background_gold + ";"));      //method call to change the scene theme and the menu theme color as well
+//        newLook.setOnAction(e -> {
+        newLook.setOnAction(e -> {
+            if (!isNewLook) {
+                // Apply new theme
+                root.setStyle("-fx-background-color: " + background_gold + "; -fx-text-fill: red; -fx-font-weight: bold;");
+                menuBar.setStyle("-fx-background-color: " + background_gold + "; -fx-text-fill: red; -fx-font-size: 18px; -fx-font-weight: bold;");
+                newLook.setText("Old Look");
+                isNewLook = true;
+            } else {
+                // Revert to original
+                root.setStyle("-fx-background-color: " + background_purple + "; -fx-text-fill: orange; -fx-font-weight: bold;");
+                menuBar.setStyle("-fx-background-color: " + background_purple + "; -fx-text-fill: orange; -fx-font-size: 18px; -fx-font-weight: bold;");
+                newLook.setText("New Look!");
+                isNewLook = false;
+            }
+        });
         exitItem.setOnAction(e -> stage.close());
 
         return menuBar;
@@ -203,6 +226,8 @@ public class JavaFXTemplate extends Application {
         MenuBar menubar = createMenuBar(stage, root);
         Label welcomeLabel = createKenoLabel("WELCOME TO KENO!");
         Button playButton = createPlayButton();
+
+        playButton.setOnAction(e->buildGameScreen(stage));
 
         VBox center = new VBox(30, welcomeLabel, playButton);
 
@@ -217,16 +242,71 @@ public class JavaFXTemplate extends Application {
         return new Scene(root, 700,700);
     }
 
-//    private Scene buildGameScreen (Stage stage){
+    private HBox buildGameMenu (Stage stage){
+        Button playButton = new Button("Play");
+        Button randomSelection = new Button("Random Picks");
 
-//        return new Scene(stage);
-//    }
+        playButton.setPrefSize(140,40);
+        playButton.setAlignment(Pos.CENTER);
+        randomSelection.setPrefSize(140,40);
+        randomSelection.setAlignment(Pos.CENTER);
+
+        Label spotLabel = new Label("Select Spots:");
+        ComboBox<Integer> numSpots = new ComboBox<>();
+        numSpots.getItems().addAll(1,4,8,10);
+        numSpots.setValue(1);
+        numSpots.setPrefWidth(140);
+        numSpots.setPrefHeight(60);
+        spotLabel.setAlignment(Pos.CENTER);
+//        numSpots.setAlignment(Pos.BOTTOM_CENTER);
+
+        Label multiplierLabel = new Label("Select Multiplier:");
+        ComboBox<Integer> multiplier = new ComboBox<>();
+        multiplier.getItems().addAll(1,2,3,4);
+        multiplier.setValue(1);
+        multiplier.setPrefWidth(140);
+        multiplier.setPrefHeight(60);
+        multiplierLabel.setAlignment(Pos.CENTER);
+//        multiplier.setAlignment(Pos.BOTTOM_CENTER);
+
+        VBox multiplierBox = new VBox(10, multiplierLabel, multiplier);
+        VBox playNRandom = new VBox(10, randomSelection, playButton);
+        VBox spotsBox = new VBox(10, spotLabel, numSpots);
+
+        HBox optionsBox = new HBox(40, multiplierBox, playNRandom, spotsBox);
+        optionsBox.setAlignment(Pos.CENTER);
+        optionsBox.setPadding(new Insets(20, 0, 20, 0));
+
+        return optionsBox;
+    }
+
+    private Scene buildGameScreen (Stage stage){
+        BorderPane root = new BorderPane();
+        MenuBar menubar = createMenuBar(stage, root);
+        root.setTop(menubar);
+
+        GridPane grid = createGridPane();
+        grid.setAlignment(Pos.CENTER);
+        HBox gameMenu = buildGameMenu(stage);
+
+        VBox center = new VBox(30, grid, gameMenu);
+        center.setAlignment(Pos.CENTER);
+
+        root.setCenter(center);
+        root.setStyle("-fx-text-fill: orange;" + "-fx-background-color: " + background_purple + ";"
+                +"-fx-font-size: 18 px;" +
+                "-fx-font-weight: bold;");
+
+        return new Scene(root, 700, 700);
+    }
 
 	//feel free to remove the starter code from this method
 	@Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Keno");
-        primaryStage.setScene(buildIntroSceen(primaryStage));
+        primaryStage.setScene(buildGameScreen(primaryStage));
+
+//        primaryStage.setTitle("Keno");
+//        primaryStage.setScene(buildIntroSceen(primaryStage));
         primaryStage.show();
     }
 
