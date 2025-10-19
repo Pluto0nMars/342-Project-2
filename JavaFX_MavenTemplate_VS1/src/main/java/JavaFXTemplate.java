@@ -19,8 +19,17 @@ import javafx.util.Duration;
 import javafx.scene.control.Alert.AlertType;
 import javafx.geometry.Pos;
 
+import java.util.HashSet;
+
 
 public class JavaFXTemplate extends Application {
+
+    private ComboBox<Integer> numSpots;   // accessible anywhere
+    private ComboBox<Integer> multiplier;
+    private GridPane grid;
+//    private HashSet<Integer> selectedNums;
+    private HashSet<Integer> selectedNums = new HashSet<>();
+    private boolean roundStarted;
 
     private static final String background_purple = "#6151F5";
     private static final String secondary_orange = "orange";
@@ -70,15 +79,36 @@ public class JavaFXTemplate extends Application {
                                 "-fx-border-radius: 50;";
                 numButton.setStyle(unselectedStyle);
 
-                boolean roundStarted = false;
                 numButton.setOnAction(e-> {
+                    int value = Integer.parseInt(numButton.getText());
+                    System.out.println(value); // debug purpose
+
                     // also need to check if the game is not in progress, cant change once the round starts
                     // Check if the button currently contains the UNSELECTED_COLOR style
-                    if (numButton.getStyle().contains(UNSELECTED_COLOR)) {
-                        numButton.setStyle(selectedStyle);
-                    } else {
-                        numButton.setStyle(unselectedStyle);
+                    if(selectedNums.contains(value)){
+                        if (selectedNums.contains(value)){
+                            selectedNums.remove(value);
+                            numButton.setStyle(unselectedStyle);
+                        }
                     }
+                    else{
+                        if (selectedNums.size() < numSpots.getValue()){
+                            selectedNums.add(value);
+                            numButton.setStyle(selectedStyle);
+                        }
+                        else{
+                            Alert alert = new Alert(AlertType.INFORMATION);
+                            alert.setTitle("Invalid Number of Selections");
+                            alert.setHeaderText("Invalid Number of Selections");
+                            alert.setContentText("Already Satisfied Max Number of Selections");
+                            alert.showAndWait();
+                        }
+                    }
+//                    if (numButton.getStyle().contains(UNSELECTED_COLOR)) {
+//                        numButton.setStyle(selectedStyle);
+//                    } else {
+//                        numButton.setStyle(unselectedStyle);
+//                    }
                 });
                 grid.add(numButton, col, row);
             }
@@ -150,6 +180,7 @@ public class JavaFXTemplate extends Application {
             "4. The more you match, the more money you win!\n"+
             "5. Maximum of 4 draws."
         );
+//        mabe customize the alert pane color. but this seems a little tricky
         DialogPane dp = alert.getDialogPane();
 //        dp.setStyle("-fx-background-color: orange;");
 //        dp.lookup()
@@ -227,7 +258,11 @@ public class JavaFXTemplate extends Application {
         Label welcomeLabel = createKenoLabel("WELCOME TO KENO!");
         Button playButton = createPlayButton();
 
-        playButton.setOnAction(e->buildGameScreen(stage));
+        playButton.setOnAction(e-> {
+            Scene gameScene = buildGameScreen(stage);
+            stage.setScene(gameScene);
+        });
+
 
         VBox center = new VBox(30, welcomeLabel, playButton);
 
@@ -244,6 +279,14 @@ public class JavaFXTemplate extends Application {
 
     private HBox buildGameMenu (Stage stage){
         Button playButton = new Button("Play");
+        playButton.setOnAction(e->{
+            System.out.println("IMPLEMENT RANDOM PICK LOGIC HERE. MATCH LOGIC, AND REWARD LOGIC");
+            // implement these |>
+            // roundNums = private void pickNumbers();
+            // matchNumbers();
+            // printReward();
+        });
+
         Button randomSelection = new Button("Random Picks");
 
         playButton.setPrefSize(140,40);
@@ -252,29 +295,27 @@ public class JavaFXTemplate extends Application {
         randomSelection.setAlignment(Pos.CENTER);
 
         Label spotLabel = new Label("Select Spots:");
-        ComboBox<Integer> numSpots = new ComboBox<>();
+        numSpots = new ComboBox<>();
         numSpots.getItems().addAll(1,4,8,10);
         numSpots.setValue(1);
         numSpots.setPrefWidth(140);
-        numSpots.setPrefHeight(60);
+        numSpots.setPrefHeight(55);
         spotLabel.setAlignment(Pos.CENTER);
-//        numSpots.setAlignment(Pos.BOTTOM_CENTER);
 
         Label multiplierLabel = new Label("Select Multiplier:");
-        ComboBox<Integer> multiplier = new ComboBox<>();
+        multiplier = new ComboBox<>();
         multiplier.getItems().addAll(1,2,3,4);
         multiplier.setValue(1);
         multiplier.setPrefWidth(140);
-        multiplier.setPrefHeight(60);
+        multiplier.setPrefHeight(55);
         multiplierLabel.setAlignment(Pos.CENTER);
-//        multiplier.setAlignment(Pos.BOTTOM_CENTER);
 
         VBox multiplierBox = new VBox(10, multiplierLabel, multiplier);
         VBox playNRandom = new VBox(10, randomSelection, playButton);
         VBox spotsBox = new VBox(10, spotLabel, numSpots);
 
         HBox optionsBox = new HBox(40, multiplierBox, playNRandom, spotsBox);
-        optionsBox.setAlignment(Pos.CENTER);
+        optionsBox.setAlignment(Pos.BOTTOM_CENTER);
         optionsBox.setPadding(new Insets(20, 0, 20, 0));
 
         return optionsBox;
@@ -289,10 +330,11 @@ public class JavaFXTemplate extends Application {
         grid.setAlignment(Pos.CENTER);
         HBox gameMenu = buildGameMenu(stage);
 
-        VBox center = new VBox(30, grid, gameMenu);
-        center.setAlignment(Pos.CENTER);
+        VBox mainGame = new VBox(30, grid, gameMenu);
+        mainGame.setAlignment(Pos.CENTER);
+        mainGame.setPadding(new Insets(80,0,0,0));
 
-        root.setCenter(center);
+        root.setCenter(mainGame);
         root.setStyle("-fx-text-fill: orange;" + "-fx-background-color: " + background_purple + ";"
                 +"-fx-font-size: 18 px;" +
                 "-fx-font-weight: bold;");
@@ -303,225 +345,11 @@ public class JavaFXTemplate extends Application {
 	//feel free to remove the starter code from this method
 	@Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setScene(buildGameScreen(primaryStage));
+        primaryStage.setTitle("Keno");
+        primaryStage.setScene(buildIntroSceen(primaryStage));
 
-//        primaryStage.setTitle("Keno");
-//        primaryStage.setScene(buildIntroSceen(primaryStage));
+//        primaryStage.setScene(buildGameScreen(primaryStage));
+
         primaryStage.show();
     }
-
-
-
-
-
-//    existing code is below. may delete if approved by Lord Sola
-
-
-
-
-
-//	public void start(Stage primaryStage) throws Exception {
-//        BorderPane root = new BorderPane();
-//        MenuBar menuBar = new MenuBar();
-//        Label kenoLabel = new Label("KENO");
-//        Label welcomeLabel = new Label("WELCOME TO KENO!");
-//        Button playBtn = createPlayButton();
-//
-////        Button playBtn = new Button("PLAY");
-//
-//        BorderPane gamePlay =new BorderPane();
-//
-//        Label winningsLabel = new Label("Winnings: $0");
-//        winningsLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-//
-//        Menu menu = new Menu("Menu Options (Click ▼)");
-//
-//        menu.setStyle("-fx-text-fill: orange;");
-//
-//        menuBar.lookupAll(".label").forEach(node -> node.setStyle("-fx-text-fill: orange;"));
-//
-//        MenuItem hintItem = new MenuItem("Select an option below:");
-//        hintItem.setDisable(true);
-//
-//        MenuItem rulesItem = new MenuItem("Rules");
-//        MenuItem oddsItem = new MenuItem("Odds");
-//        MenuItem exitItem = new MenuItem("Exit");
-//        MenuItem newLook = new MenuItem("New Look");
-//
-//        rulesItem.setStyle("-fx-text-fill: orange;");
-//        oddsItem.setStyle("-fx-text-fill: orange;");
-//        newLook.setStyle("-fx-text-fill: orange;");
-//        exitItem.setStyle("-fx-text-fill: orange;");
-//
-//
-//        menu.getItems().addAll(hintItem,rulesItem, oddsItem, exitItem);
-//        menuBar.getMenus().add(menu);
-//        menuBar.setStyle("-fx-text-fill: orange;" + "-fx-background-color: #1E90FF;"
-//                +"-fx-font-size: 18 px;" +
-//                "-fx-font-weight: bold;");
-//
-//
-//        kenoLabel.setStyle( "-fx-text-fill: orange;" +
-//                "-fx-font-size: 24px;" +
-//                "-fx-font-weight: bold;");
-//
-//        welcomeLabel.setStyle("-fx-text-fill: orange;" +
-//                "-fx-font-size: 48 px;" +
-//                "-fx-font-weight: bold;");
-//
-////        playBtn.setStyle("-fx-background-color: #32CD32;" +
-////        "-fx-text-fill: white;" +
-////                "-fx-font-size: 20px;" +
-////                "-fx-font-weight: bold;" +
-////                "-fx-border-color: white;" +
-////                "-fx-border-width: 2px;" +
-////                "-fx-background-radius: 10;" +
-////                "-fx-border-radius: 10;");
-////
-////        playBtn.prefWidth(300);
-////        playBtn.prefHeight(50);
-//
-//        //Style border pane
-//        root.setStyle("-fx-background-color: linear-gradient(to bottom, #1E90FF, #4682B4);");
-//
-//        HBox top = new HBox(menuBar, kenoLabel);
-//        VBox center = new VBox(30,welcomeLabel, playBtn);
-//        center.setStyle("-fx-alignment: center;");
-//
-//
-//        top.setStyle("-fx-border-color: #FFA500;" +
-//                "-fx-border-width: 5px;" );
-//
-//        top.setSpacing(400);
-//
-//
-//        root.setTop(top);
-//        root.setCenter(center);
-//
-//
-//        gamePlay.setStyle("-fx-background-color: linear-gradient(to bottom, #1E90FF, #4682B4);");
-//        gamePlay.setTop(top);
-//
-//        Scene gameSCene =new Scene(gamePlay, 700, 700);
-//
-//        playBtn.setOnAction(e->{
-//
-//            double currentWidth = primaryStage.getWidth();
-//            double currentHeight = primaryStage.getHeight();
-//            boolean wasMaximized = primaryStage.isMaximized();
-//
-//
-//            if(!menu.getItems().contains(newLook)){
-//                menu.getItems().add(3, newLook);
-//            }
-//            playBtn.setDisable(true);
-//
-//            GridPane betCard = createGridPane();
-//
-//
-//
-//
-//            VBox wrapperGrid = new VBox(30, betCard, winningsLabel);
-//            gamePlay.setCenter(wrapperGrid);
-//            wrapperGrid.setAlignment(Pos.CENTER);
-//            wrapperGrid.setPadding(new javafx.geometry.Insets(0, 0, 0, 50));
-//            primaryStage.setWidth(currentWidth);
-//            primaryStage.setHeight(currentHeight);
-//
-//
-//            if (wasMaximized) {
-//                primaryStage.setMaximized(true);
-//            }
-//
-//            primaryStage.setScene(gameSCene);
-//        });
-//
-//
-//
-//        oddsItem.setOnAction(e -> {
-//            Alert alert = new Alert(AlertType.INFORMATION);
-//            alert.setTitle("Keno Odds");
-//            alert.setHeaderText("Odds of Winning");
-//            alert.setContentText(
-//                    "Example odds (NC Lottery):\n" +
-//                            "Spot 1: 1 in 4.0\n" +
-//                            "Spot 4: 1 in 3.9\n" +
-//                            "Spot 8: 1 in 9.7\n" +
-//                            "Spot 10: 1 in 9.1"
-//            );
-//            // Dark background for dialog
-//            alert.getDialogPane().setStyle("-fx-background-color: #222831;");
-//
-//            // Style header
-//            Label headerLabel = (Label) alert.getDialogPane().lookup(".header-label");
-//            if (headerLabel != null) {
-//                headerLabel.setStyle("-fx-text-fill: white; " +
-//                                    "-fx-font-size: 16px;" +
-//                                    "-fx-font-family: Comic Sans MS;" +
-//                                    "-fx-font-weight: bold;");
-//            }
-//
-//            // Style content text
-//            Label contentLabel = (Label) alert.getDialogPane().lookup(".content.label");
-//            if (contentLabel != null) {
-//                contentLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: Comic Sans MS; -fx-font-weight: bold;");
-//            }
-//
-//            // Style OK button
-//            alert.getDialogPane().lookupButton(ButtonType.OK).setStyle(
-//                    "-fx-background-color: #00ADB5; -fx-text-fill: white; -fx-font-weight: bold;"
-//            );
-//
-//            alert.showAndWait();
-//        });
-//
-//        rulesItem.setOnAction(e -> {
-//            Alert alert = new Alert(AlertType.INFORMATION);
-//            alert.setTitle("Keno Rules");
-//            alert.setHeaderText("Keno Rules of Play");
-//            alert.setContentText(
-//                                    "1. Choose 1–10 numbers from 1–80.\n" +
-//                                    "2. Then 20 numbers are drawn randomly.\n" +
-//                                    "3. Multiply your winnings\n" +
-//                                    "4. The more you match, the more money you win!\n"+
-//                                    "5. Maximum of 4 draws."
-//            );
-//            // Dark background for dialog
-//            alert.getDialogPane().setStyle("-fx-background-color: #222831;");
-//
-//            // Style header
-//            Label headerLabel = (Label) alert.getDialogPane().lookup(".header-label");
-//            if (headerLabel != null) {
-//                headerLabel.setStyle("-fx-text-fill: white; " +
-//                        "-fx-font-size: 16px;" +
-//                        "-fx-font-family: Comic Sans MS;" +
-//                        "-fx-font-weight: bold;");
-//            }
-//
-//            // Style content text
-//            Label contentLabel = (Label) alert.getDialogPane().lookup(".content.label");
-//            if (contentLabel != null) {
-//                contentLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: Comic Sans MS; -fx-font-weight: bold;");
-//            }
-//
-//            // Style OK button
-//            alert.getDialogPane().lookupButton(ButtonType.OK).setStyle(
-//                    "-fx-background-color: #00ADB5; -fx-text-fill: white; -fx-font-weight: bold;"
-//            );
-//
-//            alert.showAndWait();
-//        });
-//
-//        exitItem.setOnAction(e -> primaryStage.close());
-//
-//
-//
-//	     Scene scene = new Scene(root, 700,700);
-//			primaryStage.setScene(scene);
-//			primaryStage.show();
-//
-//
-//
-//	}
-
 }
