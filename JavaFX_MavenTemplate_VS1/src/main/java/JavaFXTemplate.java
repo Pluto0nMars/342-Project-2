@@ -20,17 +20,26 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.geometry.Pos;
 
 import java.util.HashSet;
+import java.util.Random;
 
 
 public class JavaFXTemplate extends Application {
 
+    // accessor variables to keep track of user dependent options
     private ComboBox<Integer> numSpots;   // accessible anywhere
     private ComboBox<Integer> multiplier;
     private GridPane grid;
-//    private HashSet<Integer> selectedNums;
-    private HashSet<Integer> selectedNums = new HashSet<>();
-    private boolean roundStarted;
 
+    // specific round variables that *should* change each time START is called
+    private boolean roundStarted;
+    private HashSet<Integer> selectedNums = new HashSet<>();
+    private HashSet<Integer> drawnNums = new HashSet<>();
+
+    // testing this out. dont know how to implement random so that it just appears on the screen.
+    private Button[][] gridButtons = new Button[8][10];
+    private Button[] gridButtons2 = new Button[82];
+
+    // visual variables
     private static final String background_purple = "#6151F5";
     private static final String secondary_orange = "orange";
     private static final String background_gold = "#D0BA6B";
@@ -57,6 +66,8 @@ public class JavaFXTemplate extends Application {
             for (int col = 0; col < 10; col++){
                 Button numButton = new Button(String.valueOf(num++));
                 numButton.setPrefSize(35, 35);
+                gridButtons[row][col] = numButton;      // append to local reference of boardState
+                gridButtons2[num] = numButton;
 
                 String unselectedStyle =
                         "-fx-background-color: " + UNSELECTED_COLOR + ";" +
@@ -104,16 +115,27 @@ public class JavaFXTemplate extends Application {
                             alert.showAndWait();
                         }
                     }
-//                    if (numButton.getStyle().contains(UNSELECTED_COLOR)) {
-//                        numButton.setStyle(selectedStyle);
-//                    } else {
-//                        numButton.setStyle(unselectedStyle);
-//                    }
                 });
                 grid.add(numButton, col, row);
             }
         }
         return grid;
+    }
+
+    private void randomPick(int n){
+
+    }
+
+    private void generateDrawings(){
+        Random r = new Random();
+        int a;
+        for (int i=0; i<20; i++){
+            a = r.nextInt((80)+1);
+            while (drawnNums.contains(a)){
+                a = r.nextInt((80)+1);
+            }
+            drawnNums.add(a);
+        }
     }
 
     private String calculatePrize(int spots, int matches) {
@@ -263,7 +285,6 @@ public class JavaFXTemplate extends Application {
             stage.setScene(gameScene);
         });
 
-
         VBox center = new VBox(30, welcomeLabel, playButton);
 
         center.setAlignment(Pos.CENTER);
@@ -281,7 +302,10 @@ public class JavaFXTemplate extends Application {
         Button playButton = new Button("Play");
         playButton.setOnAction(e->{
             System.out.println("IMPLEMENT RANDOM PICK LOGIC HERE. MATCH LOGIC, AND REWARD LOGIC");
+            generateDrawings();
+            System.out.println("Randomly chosen numbers to compare against user: " + drawnNums);
             // implement these |>
+            // clear previous board and shit
             // roundNums = private void pickNumbers();
             // matchNumbers();
             // printReward();
@@ -347,9 +371,7 @@ public class JavaFXTemplate extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Keno");
         primaryStage.setScene(buildIntroSceen(primaryStage));
-
 //        primaryStage.setScene(buildGameScreen(primaryStage));
-
         primaryStage.show();
     }
 }
