@@ -19,6 +19,7 @@ import javafx.util.Duration;
 import javafx.scene.control.Alert.AlertType;
 import javafx.geometry.Pos;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -29,15 +30,18 @@ public class JavaFXTemplate extends Application {
     private ComboBox<Integer> numSpots;   // accessible anywhere
     private ComboBox<Integer> multiplier;
     private GridPane grid;
+    private int maxSpots = 1;
 
     // specific round variables that *should* change each time START is called
     private boolean roundStarted;
     private HashSet<Integer> selectedNums = new HashSet<>();
     private HashSet<Integer> drawnNums = new HashSet<>();
+    private HashSet<Button> selectedButtons = new HashSet<>();
 
     // testing this out. dont know how to implement random so that it just appears on the screen.
     private Button[][] gridButtons = new Button[8][10];
     private Button[] gridButtons2 = new Button[82];
+    private ArrayList<Button> gridButtonsTrack = new ArrayList<>();
 
     // visual variables
     private static final String background_purple = "#6151F5";
@@ -47,10 +51,10 @@ public class JavaFXTemplate extends Application {
     private boolean isNewLook = false;
 
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		launch(args);
-	}
+    public static void main(String[] args) {
+        // TODO Auto-generated method stub
+        launch(args);
+    }
 
     private static final String UNSELECTED_COLOR = "#1E90FF";
     private static final String SELECTED_COLOR = "#778899";
@@ -65,27 +69,28 @@ public class JavaFXTemplate extends Application {
         for (int row = 0; row < 8; row++){
             for (int col = 0; col < 10; col++){
                 Button numButton = new Button(String.valueOf(num++));
-                numButton.setPrefSize(35, 35);
+                gridButtonsTrack.add(numButton);
+                numButton.setPrefSize(50, 50);
                 gridButtons[row][col] = numButton;      // append to local reference of boardState
                 gridButtons2[num] = numButton;
 
                 String unselectedStyle =
-                        "-fx-background-color: " + UNSELECTED_COLOR + ";" +
-                                "-fx-font-size: 12px;" +
+                        "-fx-background-color: " + background_purple + ";" +
+                                "-fx-font-size: 14px;" +
                                 "-fx-font-weight: bold;" +
                                 "-fx-text-fill: white;" +
-                                "-fx-border-color: orange;" +
-                                "-fx-border-width: 2px;" +
+                                "-fx-border-color: "+ background_gold + ";" +
+                                "-fx-border-width: 3px;" +
                                 "-fx-background-radius: 50;" +
                                 "-fx-border-radius: 50;";
 
                 String selectedStyle =
                         "-fx-background-color: " +  SELECTED_COLOR + ";" +
-                                "-fx-font-size: 12px;" +
+                                "-fx-font-size: 14px;" +
                                 "-fx-font-weight: bold;" +
                                 "-fx-text-fill: white;" +
-                                "-fx-border-color: orange;" +
-                                "-fx-border-width: 2px;" +
+                                "-fx-border-color: "+ background_gold + ";" +
+                                "-fx-border-width: 3px;" +
                                 "-fx-background-radius: 50;" +
                                 "-fx-border-radius: 50;";
                 numButton.setStyle(unselectedStyle);
@@ -123,6 +128,41 @@ public class JavaFXTemplate extends Application {
     }
 
     private void randomPick(int n){
+        selectedButtons.clear();
+        for(Button b : gridButtonsTrack){
+            b.setStyle(
+                    "-fx-background-color: " +  background_purple + ";" +
+                            "-fx-font-size: 14px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-text-fill: white;" +
+                            "-fx-border-color: "+ background_gold + ";" +
+                            "-fx-border-width: 3px;" +
+                            "-fx-background-radius: 50;" +
+                            "-fx-border-radius: 50;");
+        }
+
+        String selectedStyle =
+                "-fx-background-color: " +  SELECTED_COLOR + ";" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-border-color: "+ background_gold + ";" +
+                        "-fx-border-width: 3px;" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-border-radius: 50;";
+
+        int i = 0;
+        while(i < n) {
+            Random r = new Random();
+            int randomNum = r.nextInt(80) + 1;
+            Button numButton =  gridButtonsTrack.get(randomNum - 1);
+            if(!selectedButtons.contains(numButton)) {
+                selectedButtons.add(numButton);
+                numButton.setStyle(selectedStyle);
+                i++;
+            }
+
+        }
 
     }
 
@@ -196,11 +236,11 @@ public class JavaFXTemplate extends Application {
         alert.setTitle("Keno Rules");
         alert.setHeaderText("Keno Rules of Play");
         alert.setContentText(
-            "1. Choose 1–10 numbers from 1–80.\n" +
-            "2. Then 20 numbers are drawn randomly.\n" +
-            "3. Multiply your winnings\n" +
-            "4. The more you match, the more money you win!\n"+
-            "5. Maximum of 4 draws."
+                "1. Choose 1–10 numbers from 1–80.\n" +
+                        "2. Then 20 numbers are drawn randomly.\n" +
+                        "3. Multiply your winnings\n" +
+                        "4. The more you match, the more money you win!\n"+
+                        "5. Maximum of 4 draws."
         );
 //        mabe customize the alert pane color. but this seems a little tricky
         DialogPane dp = alert.getDialogPane();
@@ -214,11 +254,11 @@ public class JavaFXTemplate extends Application {
         alert.setTitle("Keno Odds");
         alert.setHeaderText("Odds of Winning");
         alert.setContentText(
-            "Example odds (NC Lottery):\n" +
-            "Spot 1: 1 in 4.0\n" +
-            "Spot 4: 1 in 3.9\n" +
-            "Spot 8: 1 in 9.7\n" +
-            "Spot 10: 1 in 9.1"
+                "Example odds (NC Lottery):\n" +
+                        "Spot 1: 1 in 4.0\n" +
+                        "Spot 4: 1 in 3.9\n" +
+                        "Spot 8: 1 in 9.7\n" +
+                        "Spot 10: 1 in 9.1"
         );
 //        alert.getDialogPane().setStyle("-fx-background-color: #222831;");
         alert.showAndWait();
@@ -313,6 +353,12 @@ public class JavaFXTemplate extends Application {
 
         Button randomSelection = new Button("Random Picks");
 
+        randomSelection.setOnAction(e->{
+            int n = numSpots.getValue();
+            maxSpots = n;
+            randomPick(n);
+        });
+
         playButton.setPrefSize(140,40);
         playButton.setAlignment(Pos.CENTER);
         randomSelection.setPrefSize(140,40);
@@ -366,8 +412,8 @@ public class JavaFXTemplate extends Application {
         return new Scene(root, 700, 700);
     }
 
-	//feel free to remove the starter code from this method
-	@Override
+    //feel free to remove the starter code from this method
+    @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Keno");
         primaryStage.setScene(buildIntroSceen(primaryStage));
