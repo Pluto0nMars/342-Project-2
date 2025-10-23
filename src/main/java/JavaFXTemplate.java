@@ -48,6 +48,7 @@ public class JavaFXTemplate extends Application {
     private static final String secondary_orange = "orange";
     private static final String background_gold = "#D0BA6B";
     private static final String secondary_red = "#B30400";
+    private static final String winningColor = "#32CD32";
     private boolean isNewLook = false;
 
 
@@ -129,6 +130,7 @@ public class JavaFXTemplate extends Application {
 
     private void randomPick(int n){
         selectedButtons.clear();
+        selectedNums.clear();
         for(Button b : gridButtonsTrack){
             b.setStyle(
                     "-fx-background-color: " +  background_purple + ";" +
@@ -151,18 +153,23 @@ public class JavaFXTemplate extends Application {
                         "-fx-background-radius: 50;" +
                         "-fx-border-radius: 50;";
 
-            int i = 0;
-            while(i < n) {
-                Random r = new Random();
-                int randomNum = r.nextInt(80) + 1;
-                Button numButton =  gridButtonsTrack.get(randomNum - 1);
-                if(!selectedButtons.contains(numButton)) {
-                    selectedButtons.add(numButton);
-                    numButton.setStyle(selectedStyle);
-                    i++;
-                }
 
+        int i = 0;
+        while(i < n) {
+            Random r = new Random();
+            int randomNum = r.nextInt(80) + 1;
+            Button numButton =  gridButtonsTrack.get(randomNum - 1);
+            if(!selectedButtons.contains(numButton)) {
+                selectedButtons.add(numButton);
+                numButton.setStyle(selectedStyle);
+
+                String label = numButton.getText();
+                int num = Integer.parseInt(label);
+                selectedNums.add(num);
+                i++;
             }
+
+        }
 
     }
 
@@ -178,26 +185,92 @@ public class JavaFXTemplate extends Application {
         }
     }
 
-    private String calculatePrize(int spots, int matches) {
-        if (spots == 10) {
-            if (matches == 10) return "$100000";
-            if (matches == 9) return "$4250";
-            if (matches == 8) return "$450";
-            if (matches == 7) return "$40";
-            if (matches == 6) return "$15";
-            if (matches == 5) return "$2";
-            if (matches == 0) return "$5";
-        } else if (spots == 4) {
-            if (matches == 4) return "$150";
-            if (matches == 3) return "$5";
-            if (matches == 2) return "$1";
-        } else if (spots == 2) {
-            if (matches == 2) return "$10";
-            if (matches == 1) return "$1";
-        } else if (spots == 1) {
-            if (matches == 1) return "$2";
+    private int generateWinnings(){
+
+        generateDrawings();
+        int matches = 0;
+        for(Button b : selectedButtons){
+            String label = b.getText();
+            int num = Integer.parseInt(label);
+            if(drawnNums.contains(num)){
+                matches++;
+            }
         }
-        return "$0";
+
+        return calculatePrize(numSpots.getValue(), matches);
+    }
+
+    private void resetAfterDraw(){
+        drawnNums.clear();
+
+        String unselectedStyle =
+                "-fx-background-color: " + background_purple + ";" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-border-color: " + background_gold + ";" +
+                        "-fx-border-width: 3px;" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-border-radius: 50;";
+
+        String selectedStyle =
+                "-fx-background-color: " + SELECTED_COLOR + ";" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-border-color: " + background_gold + ";" +
+                        "-fx-border-width: 3px;" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-border-radius: 50;";
+
+        for (Button b : gridButtonsTrack) {
+            int num = Integer.parseInt(b.getText());
+            if (selectedNums.contains(num)) {
+                b.setStyle(selectedStyle);
+            } else {
+                b.setStyle(unselectedStyle);
+            }
+        }
+
+    }
+
+    private void highliightDrawings(){
+        for (int i = 0; i < gridButtonsTrack.size(); i++ ){
+            if(drawnNums.contains(i + 1)){
+                Button B = gridButtonsTrack.get(i);
+                B.setStyle( "-fx-background-color: " +  winningColor + ";" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-border-color: "+ background_gold + ";" +
+                        "-fx-border-width: 3px;" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-border-radius: 50;");
+            }
+
+        }
+    }
+
+    private int calculatePrize(int spots, int matches) {
+        if (spots == 10) {
+            if (matches == 10) return 100000;
+            if (matches == 9) return 4250;
+            if (matches == 8) return 450;
+            if (matches == 7) return 40;
+            if (matches == 6) return 15;
+            if (matches == 5) return 2;
+            if (matches == 0) return 5;
+        } else if (spots == 4) {
+            if (matches == 4) return 150;
+            if (matches == 3) return 5;
+            if (matches == 2) return 1;
+        } else if (spots == 2) {
+            if (matches == 2) return 10;
+            if (matches == 1) return 1;
+        } else if (spots == 1) {
+            if (matches == 1) return 2;
+        }
+        return 0;
     }
 
     private Button createPlayButton(){
@@ -339,16 +412,21 @@ public class JavaFXTemplate extends Application {
     }
 
     private HBox buildGameMenu (Stage stage){
+
         Button playButton = new Button("Play");
+
         playButton.setOnAction(e->{
-            System.out.println("IMPLEMENT RANDOM PICK LOGIC HERE. MATCH LOGIC, AND REWARD LOGIC");
-            generateDrawings();
-            System.out.println("Randomly chosen numbers to compare against user: " + drawnNums);
-            // implement these |>
-            // clear previous board and shit
-            // roundNums = private void pickNumbers();
-            // matchNumbers();
-            // printReward();
+            resetAfterDraw();
+            generateWinnings();
+
+            PauseTransition delay = new PauseTransition(Duration.seconds(3));
+
+            delay.setOnFinished(event -> {
+                highliightDrawings();
+            });
+
+            delay.play();
+
         });
 
         Button randomSelection = new Button("Random Picks");
@@ -395,6 +473,20 @@ public class JavaFXTemplate extends Application {
         BorderPane root = new BorderPane();
         MenuBar menubar = createMenuBar(stage, root);
         root.setTop(menubar);
+
+        Label winningsLabel = new Label("Winnings: $0");
+        winningsLabel.setStyle("-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + secondary_orange + ";" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 5;");
+
+        //Winning box looks bad will fix later
+        //Box winningsBox = new HBox(winningsLabel);
+//        winningsBox.setAlignment(Pos.CENTER);
+//        winningsBox.setPadding(new Insets(5, 0, 5, 0));
+
 
         GridPane grid = createGridPane();
         grid.setAlignment(Pos.CENTER);
