@@ -30,13 +30,17 @@ public class JavaFXTemplate extends Application {
     private ComboBox<Integer> numSpots;   // accessible anywhere
     private ComboBox<Integer> multiplier;
     private GridPane grid;
-    private int maxSpots = 1;
+
 
     // specific round variables that *should* change each time START is called
     private boolean roundStarted;
     private HashSet<Integer> selectedNums = new HashSet<>();
     private HashSet<Integer> drawnNums = new HashSet<>();
     private HashSet<Button> selectedButtons = new HashSet<>();
+    private int numWinnings = 0;
+    private int turnCount = 0;
+    Label winningsLabel = new Label("Winnings: $0 Turns:" + turnCount +" / 4");
+
 
     // testing this out. dont know how to implement random so that it just appears on the screen.
     private Button[][] gridButtons = new Button[8][10];
@@ -416,16 +420,34 @@ public class JavaFXTemplate extends Application {
         Button playButton = new Button("Play");
 
         playButton.setOnAction(e->{
-            resetAfterDraw();
-            generateWinnings();
 
-            PauseTransition delay = new PauseTransition(Duration.seconds(3));
+            if(turnCount < 4){
+                resetAfterDraw();
+                int winningAfterTurn =  generateWinnings() * multiplier.getValue();
+                numWinnings += winningAfterTurn;
 
-            delay.setOnFinished(event -> {
-                highliightDrawings();
-            });
+                PauseTransition delay = new PauseTransition(Duration.seconds(3));
 
-            delay.play();
+                delay.setOnFinished(event -> {
+                    winningsLabel.setText("Winnings: $" + numWinnings + "Turns:" +  turnCount + " / 4");
+                    highliightDrawings();
+                });
+                delay.play();
+                turnCount++;
+
+                if(turnCount >= 4){
+                    Alert gameOver = new Alert(AlertType.INFORMATION);
+                    playButton.setDisable(true);
+
+                    gameOver.setTitle("GAME OVER");
+                    gameOver.setHeaderText("OUT OF TURNS");
+                    gameOver.setContentText("You have run out of turns.\n Select start new game to play again");
+                    gameOver.showAndWait();
+                }
+            }
+
+
+
 
         });
 
@@ -433,7 +455,6 @@ public class JavaFXTemplate extends Application {
 
         randomSelection.setOnAction(e->{
             int n = numSpots.getValue();
-            maxSpots = n;
             randomPick(n);
         });
 
@@ -474,7 +495,7 @@ public class JavaFXTemplate extends Application {
         MenuBar menubar = createMenuBar(stage, root);
         root.setTop(menubar);
 
-        Label winningsLabel = new Label("Winnings: $0");
+
         winningsLabel.setStyle("-fx-font-size: 18px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
