@@ -68,6 +68,14 @@ public class JavaFXTemplate extends Application {
     EventHandler<ActionEvent> playGameEvent = new EventHandler<ActionEvent>() {
         @Override
         public void handle(ActionEvent event) {
+            Alert noneSelected = new Alert(AlertType.INFORMATION);
+            if(selectedNums.isEmpty()){
+                noneSelected.setTitle("NO NUMBERS SELECTED");
+                noneSelected.setHeaderText("SELECT AT LEAST ONE NUMBER");
+                noneSelected.setContentText("You need at least one number selected in oreder to play\n");
+                noneSelected.show();
+                return;
+            }
             if (roundStarted) {
                 return;
             }
@@ -81,7 +89,7 @@ public class JavaFXTemplate extends Application {
                 highlightDrawings();
 
                 turnCount++;
-                winningsLabel.setText("Winnings: $" + numWinnings + "Turns: " + turnCount + " / 4");
+                winningsLabel.setText("Winnings: $" + numWinnings + " Turns: " + turnCount + " / 4");
 
                 PauseTransition roundFinishDelay = new PauseTransition(Duration.seconds(3.75));
                 roundFinishDelay.setOnFinished(a -> {
