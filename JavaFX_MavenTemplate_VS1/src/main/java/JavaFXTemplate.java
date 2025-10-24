@@ -419,36 +419,41 @@ public class JavaFXTemplate extends Application {
 
     private HBox buildGameMenu (Stage stage){
         Button playButton = new Button("Play");
-        if (!roundStarted){
-            playButton.setOnAction(e->{
-                roundStarted = true;
-                if(turnCount < 4){
-                    resetAfterDraw();
-                    int winningAfterTurn =  generateWinnings() * multiplier.getValue();
-                    numWinnings += winningAfterTurn;
+        playButton.setOnAction(e->{
+            // prevent many games from playing at once
+            if (roundStarted){
+                return;
+            }
+            roundStarted = true;
 
-                    highlightDrawings();
+            if(turnCount < 4){
+                resetAfterDraw();
+                int winningAfterTurn =  generateWinnings() * multiplier.getValue();
+                numWinnings += winningAfterTurn;
 
-                    turnCount++;
-                    winningsLabel.setText("Winnings: $" + numWinnings + "Turns: " +  turnCount + " / 4");
+                highlightDrawings();
+
+                turnCount++;
+                winningsLabel.setText("Winnings: $" + numWinnings + "Turns: " +  turnCount + " / 4");
+
+                PauseTransition roundFinishDelay = new PauseTransition(Duration.seconds(3.75));
+                roundFinishDelay.setOnFinished(a -> {
+                    roundStarted = false;
 
                     if(turnCount >= 4){
-                        PauseTransition roundFinishDelay = new PauseTransition(Duration.seconds(4));
-                        roundFinishDelay.setOnFinished(a -> {
-                            playButton.setDisable(true);
-                            Alert gameOver = new Alert(AlertType.INFORMATION);
-                            gameOver.setTitle("GAME OVER");
-                            gameOver.setHeaderText("OUT OF TURNS");
-                            gameOver.setContentText("You have run out of turns.\n Select start new game to play again");
-                            gameOver.show();
-                        });
-                        roundFinishDelay.play();
+                        playButton.setDisable(true);
+                        Alert gameOver = new Alert(AlertType.INFORMATION);
+                        gameOver.setTitle("GAME OVER");
+                        gameOver.setHeaderText("OUT OF TURNS");
+                        gameOver.setContentText("You have run out of turns.\n Select start new game to play again");
+                        gameOver.show();
+
                     }
-                }
-            });
-            Button randomSelection = new Button("Random Picks");
-
-
+                });
+                roundFinishDelay.play();
+            }
+        });
+        Button randomSelection = new Button("Random Picks");
 
         randomSelection.setOnAction(e->{
             int n = numSpots.getValue();
