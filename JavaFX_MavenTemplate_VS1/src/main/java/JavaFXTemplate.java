@@ -19,6 +19,8 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.control.Alert.AlertType;
 import javafx.geometry.Pos;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -54,9 +56,9 @@ public class JavaFXTemplate extends Application {
     private static final String secondary_red = "#B30400";
     private static final String winningColor = "#85bb65";
     private static final String losingColor = "#e34234";
-    private boolean isNewLook = false;
     private static final String UNSELECTED_COLOR = "#1E90FF";
     private static final String SELECTED_COLOR = "#778899";
+    private boolean isNewLook = false;
 
     public static void main(String[] args) {
         // TODO Auto-generated method stub
@@ -78,7 +80,7 @@ public class JavaFXTemplate extends Application {
                 noneSelected.setContentText("You need at least one number selected in oreder to play\n");
                 noneSelected.show();
                 return;
-            }``
+            }
             // only ignore subsequent start game clicks while one is already running
             if (roundStarted) {
                 return;
@@ -160,7 +162,7 @@ public class JavaFXTemplate extends Application {
 
                 numButton.setOnAction(e -> {
                     int value = Integer.parseInt(numButton.getText());
-                    System.out.println(value); // debug purpose
+                    //System.out.println(value); // debug purpose
 
                     // also need to check if the game is not in progress, cant change once the round starts
                     // Check if the button currently contains the UNSELECTED_COLOR style
@@ -550,6 +552,15 @@ public class JavaFXTemplate extends Application {
         MenuBar menubar = createMenuBar(stage, root);
         root.setTop(menubar);
 
+        Image leftSevensImg = new Image(getClass().getResourceAsStream("/images/die.png"));
+        Image rightSevensImg = new Image(getClass().getResourceAsStream("/images/die.png"));
+        ImageView leftSevensImgView = new ImageView(leftSevensImg);
+        ImageView rightSevensImgView = new ImageView(rightSevensImg);
+
+        leftSevensImgView.setFitWidth(120);
+        rightSevensImgView.setFitWidth(120);
+        leftSevensImgView.setPreserveRatio(true);
+        rightSevensImgView.setPreserveRatio(true);
 
         winningsLabel.setStyle("-fx-font-size: 28px;" +
                 "-fx-font-weight: bold;" +
@@ -560,7 +571,7 @@ public class JavaFXTemplate extends Application {
                 "-fx-border-radius: 20;");
 
         //Winning box looks bad will fix later
-        HBox winningsBox = new HBox(winningsLabel);
+        HBox winningsBox = new HBox(leftSevensImgView, winningsLabel, rightSevensImgView);
         winningsBox.setAlignment(Pos.CENTER);
         winningsBox.setPadding(new Insets(5, 0, 5, 0));
 
