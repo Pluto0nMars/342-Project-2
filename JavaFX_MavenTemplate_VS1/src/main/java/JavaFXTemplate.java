@@ -19,6 +19,7 @@ import javafx.util.Duration;
 import javafx.scene.control.Alert.AlertType;
 import javafx.geometry.Pos;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
@@ -33,18 +34,16 @@ public class JavaFXTemplate extends Application {
 
 
     // specific round variables that *should* change each time START is called
-    private boolean roundStarted;
+    private boolean roundStarted = false;
+    private boolean fastForward = false;
     private HashSet<Integer> selectedNums = new HashSet<>();
     private HashSet<Integer> drawnNums = new HashSet<>();
     private HashSet<Button> selectedButtons = new HashSet<>();
     private int numWinnings = 0;
     private int turnCount = 0;
-    Label winningsLabel = new Label("Winnings: $0 Turns:" + turnCount +" / 4");
-
+    Label winningsLabel = new Label("Winnings: $0 Turns: " + turnCount +" / 4");
 
     // testing this out. dont know how to implement random so that it just appears on the screen.
-    private Button[][] gridButtons = new Button[8][10];
-    private Button[] gridButtons2 = new Button[82];
     private ArrayList<Button> gridButtonsTrack = new ArrayList<>();
 
     // visual variables
@@ -52,18 +51,16 @@ public class JavaFXTemplate extends Application {
     private static final String secondary_orange = "orange";
     private static final String background_gold = "#D0BA6B";
     private static final String secondary_red = "#B30400";
-    private static final String winningColor = "#32CD32";
+    private static final String winningColor = "#85bb65";
+    private static final String losingColor = "#e34234";
     private boolean isNewLook = false;
-
+    private static final String UNSELECTED_COLOR = "#1E90FF";
+    private static final String SELECTED_COLOR = "#778899";
 
     public static void main(String[] args) {
         // TODO Auto-generated method stub
         launch(args);
     }
-
-    private static final String UNSELECTED_COLOR = "#1E90FF";
-    private static final String SELECTED_COLOR = "#778899";
-
 
     private GridPane createGridPane(){
         GridPane grid = new GridPane();
@@ -76,8 +73,6 @@ public class JavaFXTemplate extends Application {
                 Button numButton = new Button(String.valueOf(num++));
                 gridButtonsTrack.add(numButton);
                 numButton.setPrefSize(50, 50);
-                gridButtons[row][col] = numButton;      // append to local reference of boardState
-                gridButtons2[num] = numButton;
 
                 String unselectedStyle =
                         "-fx-background-color: " + background_purple + ";" +
@@ -138,26 +133,27 @@ public class JavaFXTemplate extends Application {
         for(Button b : gridButtonsTrack){
             b.setStyle(
                     "-fx-background-color: " +  background_purple + ";" +
-                            "-fx-font-size: 14px;" +
-                            "-fx-font-weight: bold;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-border-color: "+ background_gold + ";" +
-                            "-fx-border-width: 3px;" +
-                            "-fx-background-radius: 50;" +
-                            "-fx-border-radius: 50;");
+                    "-fx-font-size: 14px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-border-color: "+ background_gold + ";" +
+                    "-fx-border-width: 3px;" +
+                    "-fx-background-radius: 50;" +
+                    "-fx-border-radius: 50;");
         }
 
         String selectedStyle =
                 "-fx-background-color: " +  SELECTED_COLOR + ";" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-border-color: "+ background_gold + ";" +
-                        "-fx-border-width: 3px;" +
-                        "-fx-background-radius: 50;" +
-                        "-fx-border-radius: 50;";
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-border-color: "+ background_gold + ";" +
+                "-fx-border-width: 3px;" +
+                "-fx-background-radius: 50;" +
+                "-fx-border-radius: 50;";
 
 
+        // generate random numbers and change appearance to selected_color
         int i = 0;
         while(i < n) {
             Random r = new Random();
@@ -172,11 +168,10 @@ public class JavaFXTemplate extends Application {
                 selectedNums.add(num);
                 i++;
             }
-
         }
-
     }
 
+    // generate 20 random numbers that the engine compares against users chosen numbers
     private void generateDrawings(){
         Random r = new Random();
         int a;
@@ -190,7 +185,6 @@ public class JavaFXTemplate extends Application {
     }
 
     private int generateWinnings(){
-
         generateDrawings();
         int matches = 0;
         for(Button b : selectedButtons){
@@ -235,23 +229,31 @@ public class JavaFXTemplate extends Application {
                 b.setStyle(unselectedStyle);
             }
         }
-
     }
 
-    private void highliightDrawings(){
-        for (int i = 0; i < gridButtonsTrack.size(); i++ ){
-            if(drawnNums.contains(i + 1)){
-                Button B = gridButtonsTrack.get(i);
-                B.setStyle( "-fx-background-color: " +  winningColor + ";" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-border-color: "+ background_gold + ";" +
-                        "-fx-border-width: 3px;" +
-                        "-fx-background-radius: 50;" +
-                        "-fx-border-radius: 50;");
-            }
+    // highlight drawn numbers with a purposeful delay using JavaFX Actions
+    private void highlightDrawings(){
+        List<Integer> drawnList = new ArrayList<>(drawnNums);
 
+        for (int i=0; i<drawnList.size(); i++){
+            int num = drawnList.get(i);
+            if (num < 1 || num >80) continue;
+            PauseTransition pause = new PauseTransition(Duration.millis(200 * i));
+            pause.setOnFinished(e ->{
+                // if the user chose number and program chose it. MATCH
+                Button B = gridButtonsTrack.get(num-1);
+
+                String color = selectedNums.contains(num) ? winningColor : losingColor;
+                B.setStyle( "-fx-background-color: " +  color + ";" +
+                            "-fx-font-size: 14px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-text-fill: white;" +
+                            "-fx-border-color: "+ background_gold + ";" +
+                            "-fx-border-width: 3px;" +
+                            "-fx-background-radius: 50;" +
+                            "-fx-border-radius: 50;");
+            });
+            pause.play();
         }
     }
 
@@ -279,7 +281,7 @@ public class JavaFXTemplate extends Application {
 
     private Button createPlayButton(){
         Button playBtn = new Button("PLAY");
-        playBtn.setStyle("-fx-background-color: orange;" +
+        playBtn.setStyle("-fx-background-color: " + background_gold + ";" +
                 "-fx-text-fill: white;" +
                 "-fx-font-size: 20px;" +
                 "-fx-font-weight: bold;" +
@@ -295,7 +297,7 @@ public class JavaFXTemplate extends Application {
     }
     private Label createKenoLabel(String lab){
         Label label = new Label(lab);
-        label.setStyle("-fx-background-color: orange;" +
+        label.setStyle("-fx-background-color: " + background_gold + ";" +
                 "-fx-text-fill: white;" +
                 "-fx-font-size: 40px;" +
                 "-fx-font-weight: bold;" +
@@ -398,7 +400,7 @@ public class JavaFXTemplate extends Application {
         Button playButton = createPlayButton();
 
         playButton.setOnAction(e-> {
-            Scene gameScene = buildGameScreen(stage);
+            Scene gameScene = buildGameScreen(stage, menubar);
             stage.setScene(gameScene);
         });
 
@@ -416,42 +418,37 @@ public class JavaFXTemplate extends Application {
     }
 
     private HBox buildGameMenu (Stage stage){
-
         Button playButton = new Button("Play");
+        if (!roundStarted){
+            playButton.setOnAction(e->{
+                roundStarted = true;
+                if(turnCount < 4){
+                    resetAfterDraw();
+                    int winningAfterTurn =  generateWinnings() * multiplier.getValue();
+                    numWinnings += winningAfterTurn;
 
-        playButton.setOnAction(e->{
+                    highlightDrawings();
 
-            if(turnCount < 4){
-                resetAfterDraw();
-                int winningAfterTurn =  generateWinnings() * multiplier.getValue();
-                numWinnings += winningAfterTurn;
+                    turnCount++;
+                    winningsLabel.setText("Winnings: $" + numWinnings + "Turns: " +  turnCount + " / 4");
 
-                PauseTransition delay = new PauseTransition(Duration.seconds(3));
-
-                delay.setOnFinished(event -> {
-                    winningsLabel.setText("Winnings: $" + numWinnings + "Turns:" +  turnCount + " / 4");
-                    highliightDrawings();
-                });
-                delay.play();
-                turnCount++;
-
-                if(turnCount >= 4){
-                    Alert gameOver = new Alert(AlertType.INFORMATION);
-                    playButton.setDisable(true);
-
-                    gameOver.setTitle("GAME OVER");
-                    gameOver.setHeaderText("OUT OF TURNS");
-                    gameOver.setContentText("You have run out of turns.\n Select start new game to play again");
-                    gameOver.showAndWait();
+                    if(turnCount >= 4){
+                        PauseTransition roundFinishDelay = new PauseTransition(Duration.seconds(4));
+                        roundFinishDelay.setOnFinished(a -> {
+                            playButton.setDisable(true);
+                            Alert gameOver = new Alert(AlertType.INFORMATION);
+                            gameOver.setTitle("GAME OVER");
+                            gameOver.setHeaderText("OUT OF TURNS");
+                            gameOver.setContentText("You have run out of turns.\n Select start new game to play again");
+                            gameOver.show();
+                        });
+                        roundFinishDelay.play();
+                    }
                 }
-            }
+            });
+            Button randomSelection = new Button("Random Picks");
 
 
-
-
-        });
-
-        Button randomSelection = new Button("Random Picks");
 
         randomSelection.setOnAction(e->{
             int n = numSpots.getValue();
@@ -490,30 +487,30 @@ public class JavaFXTemplate extends Application {
         return optionsBox;
     }
 
-    private Scene buildGameScreen (Stage stage){
+    private Scene buildGameScreen (Stage stage, MenuBar menu){
         BorderPane root = new BorderPane();
         MenuBar menubar = createMenuBar(stage, root);
         root.setTop(menubar);
 
 
-        winningsLabel.setStyle("-fx-font-size: 18px;" +
+        winningsLabel.setStyle("-fx-font-size: 28px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
-                "-fx-background-color: " + secondary_orange + ";" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
                 "-fx-padding: 3px 20px;" +
-                "-fx-border-radius: 5;");
+                "-fx-border-radius: 20;");
 
         //Winning box looks bad will fix later
-        //Box winningsBox = new HBox(winningsLabel);
-//        winningsBox.setAlignment(Pos.CENTER);
-//        winningsBox.setPadding(new Insets(5, 0, 5, 0));
-
+        HBox winningsBox = new HBox(winningsLabel);
+        winningsBox.setAlignment(Pos.CENTER);
+        winningsBox.setPadding(new Insets(5, 0, 5, 0));
 
         GridPane grid = createGridPane();
         grid.setAlignment(Pos.CENTER);
         HBox gameMenu = buildGameMenu(stage);
 
-        VBox mainGame = new VBox(30, grid, gameMenu);
+        VBox mainGame = new VBox(30, winningsBox, grid, gameMenu);
         mainGame.setAlignment(Pos.CENTER);
         mainGame.setPadding(new Insets(80,0,0,0));
 
