@@ -666,7 +666,7 @@ public class JavaFXTemplate extends Application {
         topGamesGrid.setHgap(20);
         topGamesGrid.setVgap(5);
 
-        Label title = new Label("Top 10 Games");
+        Label title = new Label("Top Games");
         title.setStyle("-fx-font-size: 28px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
