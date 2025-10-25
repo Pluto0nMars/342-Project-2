@@ -25,6 +25,9 @@ import javafx.scene.image.ImageView;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap; //use for keeping a localsorting of the map
 import java.util.Random;
 
 
@@ -92,6 +95,7 @@ public class JavaFXTemplate extends Application {
                 resetAfterDraw();
                 int winningAfterTurn = generateWinnings() * multiplier.getValue();
                 numWinnings += winningAfterTurn;
+                System.out.println(numWinnings);
 
                 highlightDrawings();
 
@@ -105,6 +109,7 @@ public class JavaFXTemplate extends Application {
                     randomSelection.setDisable(false);
 
                     if (turnCount >= 4) {
+                        addToTopGames(numWinnings);
                         gamePlayButton.setText("New Game");
 
                         gamePlayButton.setOnAction( resetHandler-> {
@@ -122,6 +127,11 @@ public class JavaFXTemplate extends Application {
                     }
                 });
                 roundFinishDelay.play();
+//                int winningAfterTurn = generateWinnings() * multiplier.getValue();
+//                numWinnings += winningAfterTurn;
+//                turnCount++;
+//                System.out.println(numWinnings);
+//                winningsLabel.setText("Winnings: $" + numWinnings + " Turns: " + turnCount + " / 4");
             }
         }
     };
@@ -344,6 +354,37 @@ public class JavaFXTemplate extends Application {
         }
     }
 
+
+    // create data structes for left and right side of the game. left contians a treemap we
+    // access in decreasingKeyOrder. The right side contains a makeshift PriorityQueue 351 Type sh
+    private static final TreeMap<Integer, Integer> prizesMap = new TreeMap<>();
+    static {
+        prizesMap.put(10, 10000);
+        prizesMap.put(9, 4250);
+        prizesMap.put(8, 450);
+        prizesMap.put(7, 40);
+        prizesMap.put(6, 15);
+        prizesMap.put(5, 8);
+        prizesMap.put(4, 6);
+        prizesMap.put(3, 4);
+        prizesMap.put(2, 2);
+        prizesMap.put(1, 0);
+        prizesMap.put(0, 0);
+    }
+
+
+    private final List<Integer> topGames = new ArrayList<>();
+    private void addToTopGames(Integer game) {
+        topGames.add(game);
+        topGames.sort((a, b) -> Integer.compare(b, a)); // descending
+        if (topGames.size() > 11) {
+            topGames.remove(topGames.size() - 1); // remove lowest if >10
+        }
+    }
+
+
+
+
     private int calculatePrize(int spots, int matches) {
         if (spots == 10) {
             if (matches == 10) return 100000;
@@ -351,8 +392,13 @@ public class JavaFXTemplate extends Application {
             if (matches == 8) return 450;
             if (matches == 7) return 40;
             if (matches == 6) return 15;
-            if (matches == 5) return 2;
-            if (matches == 0) return 5;
+            if (matches == 5) return 8;
+            // added these
+            if (matches == 4) return 6;
+            if (matches == 3) return 4;
+            if (matches == 2) return 2;
+            ////
+            if (matches == 0) return 0;
         } else if (spots == 4) {
             if (matches == 4) return 150;
             if (matches == 3) return 5;
@@ -504,38 +550,50 @@ public class JavaFXTemplate extends Application {
 //        playButton.setOnAction(e-> stage.setScene(buildGameScreen(stage)));
         return new Scene(root, 700, 700);
     }
-
     private HBox buildGameMenu(Stage stage) {
-
         gamePlayButton.setOnAction(playGameEvent);
-//        Button randomSelection = new Button("Random Picks");
-
         randomSelection.setOnAction(e -> {
             int n = numSpots.getValue();
             randomPick(n);
         });
 
-        gamePlayButton.setPrefSize(140, 40);
+        gamePlayButton.setPrefSize(180, 50);
         gamePlayButton.setAlignment(Pos.CENTER);
-        randomSelection.setPrefSize(140, 40);
+        randomSelection.setPrefSize(180, 50);
         randomSelection.setAlignment(Pos.CENTER);
 
         Label spotLabel = new Label("Select Spots:");
+        spotLabel.setStyle("-fx-font-size: 23px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 20;");
+        spotLabel.setAlignment(Pos.CENTER);
+        spotLabel.setMaxWidth(200);
         numSpots = new ComboBox<>();
         numSpots.getItems().addAll(1, 4, 8, 10);
         numSpots.setValue(1);
-        numSpots.setPrefWidth(140);
+        numSpots.setPrefWidth(200);
         numSpots.setPrefHeight(55);
-        spotLabel.setAlignment(Pos.CENTER);
 
         Label multiplierLabel = new Label("Select Multiplier:");
+        multiplierLabel.setStyle("-fx-font-size: 23px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 20;");
+        multiplierLabel.setAlignment(Pos.CENTER);
+        multiplierLabel.setMaxWidth(200);
+
         multiplier = new ComboBox<>();
         multiplier.getItems().addAll(1, 2, 3, 4);
         multiplier.setValue(1);
-        multiplier.setPrefWidth(140);
+        multiplier.setPrefWidth(200);
         multiplier.setPrefHeight(55);
-        multiplierLabel.setAlignment(Pos.CENTER);
-
         VBox multiplierBox = new VBox(10, multiplierLabel, multiplier);
         VBox playNRandom = new VBox(10, randomSelection, gamePlayButton);
         VBox spotsBox = new VBox(10, spotLabel, numSpots);
@@ -545,6 +603,122 @@ public class JavaFXTemplate extends Application {
         optionsBox.setPadding(new Insets(20, 0, 20, 0));
 
         return optionsBox;
+    }
+
+    private GridPane initPayoutBox(){
+        GridPane payoutGrid = new GridPane();
+        payoutGrid.setAlignment(Pos.CENTER);
+        payoutGrid.setHgap(20);
+        payoutGrid.setVgap(5);
+        Label header1 = new Label("Matches");
+        header1.setStyle("-fx-font-size: 28px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 20;");
+        header1.setAlignment(Pos.CENTER);
+        header1.setMaxWidth(300);
+        Label header2 = new Label("Payout");
+        header2.setStyle("-fx-font-size: 28px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 20;");
+        header2.setAlignment(Pos.CENTER);
+        header2.setMaxWidth(300);
+        int row = 0;
+        payoutGrid.addRow(row++, header1, header2);
+        for (var key : prizesMap.descendingKeySet()) {
+            Integer value = prizesMap.get(key);
+
+            Label matchLabel = new Label(String.valueOf(key));
+            Label payoutLabel = new Label("$" + value);
+            matchLabel.setAlignment(Pos.CENTER);
+            matchLabel.setMaxWidth(300);
+            matchLabel.setStyle("-fx-font-size: 28px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-color: " + background_purple + ";" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3px 20px;" +
+                    "-fx-border-radius: 20;");
+            payoutLabel.setAlignment(Pos.CENTER);
+            payoutLabel.setMaxWidth(300);
+            payoutLabel.setStyle("-fx-font-size: 28px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-color: " + background_purple + ";" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3px 20px;" +
+                    "-fx-border-radius: 20;");
+            payoutGrid.addRow(row++, matchLabel, payoutLabel);
+        }
+        return payoutGrid;
+    }
+
+    private GridPane initTopGames(){
+        GridPane topGamesGrid = new GridPane();
+        topGamesGrid.setAlignment(Pos.CENTER);
+        topGamesGrid.setHgap(20);
+        topGamesGrid.setVgap(5);
+
+        Label title = new Label("Top 10 Games");
+        title.setStyle("-fx-font-size: 28px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 20;");
+        title.setAlignment(Pos.CENTER);
+        title.setMaxWidth(300);
+
+        Label games = new Label("High Scores");
+        games.setStyle("-fx-font-size: 28px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: white;" +
+                "-fx-background-color: " + background_purple + ";" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 3px 20px;" +
+                "-fx-border-radius: 20;");
+        games.setAlignment(Pos.CENTER);
+        games.setMaxWidth(300);
+
+        topGamesGrid.addRow(0, title, games);
+
+        int count = 0;
+        for (int i=0; i<11; i++){
+            // want to show 10 values regardless of number of games played for aesthetic reasons
+            int score = (i < topGames.size()) ? topGames.get(i) : 0;
+
+            Label num  = new Label(String.valueOf(i+1));
+            Label entry = new Label("$" + score);
+            num.setStyle("-fx-font-size: 28px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-color: " + background_purple + ";" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3px 20px;" +
+                    "-fx-border-radius: 20;");
+            num.setAlignment(Pos.CENTER);
+            num.setMaxWidth(300);
+            entry.setStyle("-fx-font-size: 28px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-color: " + background_purple + ";" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3px 20px;" +
+                    "-fx-border-radius: 20;");
+            entry.setAlignment(Pos.CENTER);
+            entry.setMaxWidth(300);
+
+            topGamesGrid.addRow(i+1, num, entry);
+        }
+        return topGamesGrid;
     }
 
     private Scene buildGameScreen(Stage stage, MenuBar menu) {
@@ -579,11 +753,24 @@ public class JavaFXTemplate extends Application {
         grid.setAlignment(Pos.CENTER);
         HBox gameMenu = buildGameMenu(stage);
 
-        VBox mainGame = new VBox(30, winningsBox, grid, gameMenu);
-        mainGame.setAlignment(Pos.CENTER);
-        mainGame.setPadding(new Insets(80, 0, 0, 0));
+        GridPane leftPayoutBox = initPayoutBox();
+        VBox leftSide = new VBox(-80, leftPayoutBox);
+        GridPane rightTopScoresSide = initTopGames();         ///
+        VBox rightSide = new VBox(80, rightTopScoresSide);        ///
+        leftSide.setAlignment(Pos.CENTER);
+        rightSide.setAlignment(Pos.CENTER);
 
-        root.setCenter(mainGame);
+        VBox mainGame = new VBox(30, winningsBox, grid, gameMenu);
+
+        HBox mainScene = new HBox(150, leftSide, mainGame, rightSide);
+        mainScene.setAlignment(Pos.CENTER);
+        mainScene.setPadding(new Insets(80, 0, 0, 0));
+
+//        mainGame.setAlignment(Pos.CENTER);
+//        mainGame.setPadding(new Insets(80, 0, 0, 0));
+//        root.setCenter(mainGame);
+        root.setCenter(mainScene);
+
         root.setStyle("-fx-text-fill: orange;" + "-fx-background-color: " + background_purple + ";"
                 + "-fx-font-size: 18 px;" +
                 "-fx-font-weight: bold;");
