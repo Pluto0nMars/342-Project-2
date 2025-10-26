@@ -141,4 +141,122 @@ class MyTest {
     }
 
 
+    @Test
+    public void testAddToTopGames_MaxLimit() {
+        // Add 15 values (more than 11)
+        for (int i = 1; i <= 15; i++) {
+            logic.addToTopGames(i * 10);
+        }
+
+        List<Integer> top = logic.getTopGames();
+        assertEquals(11, top.size());
+        assertEquals(150, top.get(0));
+        assertEquals(50, top.get(top.size() - 1));
+    }
+
+    @Test
+    public void testAddToTopGames_Duplicates() {
+        logic.addToTopGames(100);
+        logic.addToTopGames(100);
+        logic.addToTopGames(200);
+        logic.addToTopGames(50);
+
+        List<Integer> top = logic.getTopGames();
+        assertEquals(List.of(200, 100, 100, 50), top);
+    }
+
+    @Test
+    public void testCalculatePrize_InvalidSpots() {
+        assertEquals(0, logic.calculatePrize(0, 1));
+        assertEquals(0, logic.calculatePrize(-5, 3));
+        assertEquals(0, logic.calculatePrize(3, 2));
+        assertEquals(0, logic.calculatePrize(8, 4));
+    }
+
+    @Test
+    public void testCalculatePrize_PreferenceOverMap() {
+        assertEquals(0, logic.calculatePrize(4, 1));
+    }
+
+    @Test
+    public void testTopGames_OrderStability() {
+        logic.addToTopGames(300);
+        logic.addToTopGames(100);
+        logic.addToTopGames(200);
+        logic.addToTopGames(250);
+
+        List<Integer> top = logic.getTopGames();
+        assertEquals(List.of(300, 250, 200, 100), top);
+    }
+
+    @Test
+    public void testAddToTopGames_LimitsTo11() {
+        for (int i = 1; i <= 20; i++) {
+            logic.addToTopGames(i);
+        }
+        List<Integer> top = logic.getTopGames();
+        assertEquals(11, top.size());
+        assertEquals(20, top.get(0));
+        assertEquals(10, top.get(10));
+    }
+
+    @Test
+    public void testAddToTopGames_DuplicatesAgain() {
+        logic.addToTopGames(100);
+        logic.addToTopGames(100);
+        logic.addToTopGames(50);
+        List<Integer> top = logic.getTopGames();
+        assertEquals(3, top.size());
+        assertEquals(100, top.get(0));
+        assertEquals(100, top.get(1));
+    }
+
+    @Test
+    public void testCalculatePrize_MatchesGreaterThanSpots() {
+        assertEquals(0, logic.calculatePrize(2, 3));
+        assertEquals(0, logic.calculatePrize(1, 5));
+    }
+
+    @Test
+    public void testCalculatePrize_SpotsZero() {
+        assertEquals(0, logic.calculatePrize(0, 0));
+        assertEquals(0, logic.calculatePrize(0, 5));
+    }
+
+    @Test
+    public void testCalculatePrize_MatchesZeroForNon10Spots() {
+        assertEquals(0, logic.calculatePrize(4, 0));
+        assertEquals(0, logic.calculatePrize(2, 0));
+        assertEquals(0, logic.calculatePrize(1, 0));
+    }
+
+    @Test
+    public void testAddToTopGames_DescendingInput() {
+        logic.addToTopGames(300);
+        logic.addToTopGames(200);
+        logic.addToTopGames(100);
+        List<Integer> top = logic.getTopGames();
+        assertEquals(List.of(300, 200, 100), top);
+    }
+
+    @Test
+    public void testAddToTopGames_SmallValues() {
+        logic.addToTopGames(0);
+        logic.addToTopGames(-10);
+        logic.addToTopGames(5);
+        List<Integer> top = logic.getTopGames();
+        assertEquals(3, top.size());
+        assertEquals(5, top.get(0));
+        assertEquals(0, top.get(1));
+        assertEquals(-10, top.get(2));
+    }
+
+    @Test
+    public void testCalculatePrize_UnlistedSpotValue() {
+        // Spots not 1, 2, 4, or 10 should return 0 always
+        assertEquals(0, logic.calculatePrize(3, 2));
+        assertEquals(0, logic.calculatePrize(6, 3));
+    }
+
+
 }
