@@ -37,6 +37,8 @@ public class JavaFXTemplate extends Application {
     private ComboBox<Integer> numSpots;   // accessible anywhere
     private ComboBox<Integer> multiplier;
     private GridPane grid;
+    private GridPane topGamesGrid;
+    private final List<Integer> topGames = new ArrayList<>();
 
 
     // specific round variables that *should* change each time START is called
@@ -82,6 +84,7 @@ public class JavaFXTemplate extends Application {
                 noneSelected.setHeaderText("SELECT AT LEAST ONE NUMBER");
                 noneSelected.setContentText("You need at least one number selected in oreder to play\n");
                 noneSelected.show();
+                randomSelection.setDisable(false);
                 return;
             }
             // only ignore subsequent start game clicks while one is already running
@@ -95,7 +98,7 @@ public class JavaFXTemplate extends Application {
                 resetAfterDraw();
                 int winningAfterTurn = generateWinnings() * multiplier.getValue();
                 numWinnings += winningAfterTurn;
-                System.out.println(numWinnings);
+//                System.out.println(numWinnings);
 
                 highlightDrawings();
 
@@ -110,8 +113,9 @@ public class JavaFXTemplate extends Application {
 
                     if (turnCount >= 4) {
                         addToTopGames(numWinnings);
-                        gamePlayButton.setText("New Game");
+                        updateTopGamesUI();
 
+                        gamePlayButton.setText("New Game");
                         gamePlayButton.setOnAction( resetHandler-> {
                             resetGame();
                             gamePlayButton.setText("Play");
@@ -279,7 +283,6 @@ public class JavaFXTemplate extends Application {
 
         winningsLabel.setText("Winnings: $" + numWinnings + "Turns: " + turnCount + " / 4");
 
-
         for (Button b : gridButtonsTrack) {
             String unselectedStyle =
                     "-fx-background-color: " + background_purple + ";" +
@@ -373,7 +376,7 @@ public class JavaFXTemplate extends Application {
     }
 
 
-    private final List<Integer> topGames = new ArrayList<>();
+//    private final List<Integer> topGames = new ArrayList<>();
     private void addToTopGames(Integer game) {
         topGames.add(game);
         topGames.sort((a, b) -> Integer.compare(b, a)); // descending
@@ -401,13 +404,14 @@ public class JavaFXTemplate extends Application {
             if (matches == 0) return 0;
         } else if (spots == 4) {
             if (matches == 4) return 150;
-            if (matches == 3) return 5;
-            if (matches == 2) return 1;
-        } else if (spots == 2) {
-            if (matches == 2) return 10;
-            if (matches == 1) return 1;
-        } else if (spots == 1) {
+            if (matches == 3) return 40;
+            if (matches == 2) return 4;
             if (matches == 1) return 2;
+        } else if (spots == 2) {
+            if (matches == 2) return 20;
+            if (matches == 1) return 4;
+        } else if (spots == 1) {
+            if (matches == 1) return 4;
         }
         return 0;
     }
@@ -563,7 +567,7 @@ public class JavaFXTemplate extends Application {
         randomSelection.setAlignment(Pos.CENTER);
 
         Label spotLabel = new Label("Select Spots:");
-        spotLabel.setStyle("-fx-font-size: 23px;" +
+        spotLabel.setStyle("-fx-font-size: 20px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-color: " + background_purple + ";" +
@@ -579,7 +583,7 @@ public class JavaFXTemplate extends Application {
         numSpots.setPrefHeight(55);
 
         Label multiplierLabel = new Label("Select Multiplier:");
-        multiplierLabel.setStyle("-fx-font-size: 23px;" +
+        multiplierLabel.setStyle("-fx-font-size: 20px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-color: " + background_purple + ";" +
@@ -611,7 +615,7 @@ public class JavaFXTemplate extends Application {
         payoutGrid.setHgap(20);
         payoutGrid.setVgap(5);
         Label header1 = new Label("Matches");
-        header1.setStyle("-fx-font-size: 28px;" +
+        header1.setStyle("-fx-font-size: 22px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-color: " + background_purple + ";" +
@@ -619,9 +623,10 @@ public class JavaFXTemplate extends Application {
                 "-fx-padding: 3px 20px;" +
                 "-fx-border-radius: 20;");
         header1.setAlignment(Pos.CENTER);
-        header1.setMaxWidth(300);
+        header1.setPrefWidth(150);
+        header1.setPrefHeight(25);
         Label header2 = new Label("Payout");
-        header2.setStyle("-fx-font-size: 28px;" +
+        header2.setStyle("-fx-font-size: 22px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-color: " + background_purple + ";" +
@@ -629,7 +634,8 @@ public class JavaFXTemplate extends Application {
                 "-fx-padding: 3px 20px;" +
                 "-fx-border-radius: 20;");
         header2.setAlignment(Pos.CENTER);
-        header2.setMaxWidth(300);
+        header2.setPrefWidth(150);
+        header2.setPrefHeight(25);
         int row = 0;
         payoutGrid.addRow(row++, header1, header2);
         for (var key : prizesMap.descendingKeySet()) {
@@ -638,8 +644,10 @@ public class JavaFXTemplate extends Application {
             Label matchLabel = new Label(String.valueOf(key));
             Label payoutLabel = new Label("$" + value);
             matchLabel.setAlignment(Pos.CENTER);
-            matchLabel.setMaxWidth(300);
-            matchLabel.setStyle("-fx-font-size: 28px;" +
+//            matchLabel.setMaxWidth(300);
+            matchLabel.setPrefWidth(150);
+            matchLabel.setPrefHeight(25);
+            matchLabel.setStyle("-fx-font-size: 22px;" +
                     "-fx-font-weight: bold;" +
                     "-fx-text-fill: white;" +
                     "-fx-background-color: " + background_purple + ";" +
@@ -647,8 +655,10 @@ public class JavaFXTemplate extends Application {
                     "-fx-padding: 3px 20px;" +
                     "-fx-border-radius: 20;");
             payoutLabel.setAlignment(Pos.CENTER);
-            payoutLabel.setMaxWidth(300);
-            payoutLabel.setStyle("-fx-font-size: 28px;" +
+//            payoutLabel.setMaxWidth(300);
+            payoutLabel.setPrefWidth(150);
+            payoutLabel.setPrefHeight(25);
+            payoutLabel.setStyle("-fx-font-size: 22px;" +
                     "-fx-font-weight: bold;" +
                     "-fx-text-fill: white;" +
                     "-fx-background-color: " + background_purple + ";" +
@@ -661,13 +671,13 @@ public class JavaFXTemplate extends Application {
     }
 
     private GridPane initTopGames(){
-        GridPane topGamesGrid = new GridPane();
+        topGamesGrid = new GridPane();
         topGamesGrid.setAlignment(Pos.CENTER);
         topGamesGrid.setHgap(20);
         topGamesGrid.setVgap(5);
 
         Label title = new Label("Top Games");
-        title.setStyle("-fx-font-size: 28px;" +
+        title.setStyle("-fx-font-size: 22px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-color: " + background_purple + ";" +
@@ -675,10 +685,12 @@ public class JavaFXTemplate extends Application {
                 "-fx-padding: 3px 20px;" +
                 "-fx-border-radius: 20;");
         title.setAlignment(Pos.CENTER);
-        title.setMaxWidth(300);
+//        title.setMaxWidth(300);
+        title.setPrefWidth(150);
+        title.setPrefHeight(25);
 
         Label games = new Label("High Scores");
-        games.setStyle("-fx-font-size: 28px;" +
+        games.setStyle("-fx-font-size: 21px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-color: " + background_purple + ";" +
@@ -686,18 +698,17 @@ public class JavaFXTemplate extends Application {
                 "-fx-padding: 3px 20px;" +
                 "-fx-border-radius: 20;");
         games.setAlignment(Pos.CENTER);
-        games.setMaxWidth(300);
+//        games.setMaxWidth(300);
+        games.setPrefWidth(150);
+        games.setPrefHeight(25);
 
         topGamesGrid.addRow(0, title, games);
 
-        int count = 0;
-        for (int i=0; i<11; i++){
-            // want to show 10 values regardless of number of games played for aesthetic reasons
+        for (int i = 0; i < 10; i++) {
             int score = (i < topGames.size()) ? topGames.get(i) : 0;
-
-            Label num  = new Label(String.valueOf(i+1));
-            Label entry = new Label("$" + score);
-            num.setStyle("-fx-font-size: 28px;" +
+            Label num = new Label(String.valueOf(i + 1));
+            Label entry = new Label("0");
+            num.setStyle("-fx-font-size: 22px;" +
                     "-fx-font-weight: bold;" +
                     "-fx-text-fill: white;" +
                     "-fx-background-color: " + background_purple + ";" +
@@ -705,8 +716,10 @@ public class JavaFXTemplate extends Application {
                     "-fx-padding: 3px 20px;" +
                     "-fx-border-radius: 20;");
             num.setAlignment(Pos.CENTER);
-            num.setMaxWidth(300);
-            entry.setStyle("-fx-font-size: 28px;" +
+            num.setPrefWidth(150);
+            num.setPrefHeight(25);
+
+            entry.setStyle("-fx-font-size: 22px;" +
                     "-fx-font-weight: bold;" +
                     "-fx-text-fill: white;" +
                     "-fx-background-color: " + background_purple + ";" +
@@ -714,12 +727,56 @@ public class JavaFXTemplate extends Application {
                     "-fx-padding: 3px 20px;" +
                     "-fx-border-radius: 20;");
             entry.setAlignment(Pos.CENTER);
-            entry.setMaxWidth(300);
+            entry.setPrefWidth(150);
+            entry.setPrefHeight(25);
+            //            entry.setMaxWidth(300);
 
-            topGamesGrid.addRow(i+1, num, entry);
+            topGamesGrid.addRow(i + 1, num, entry);
         }
+//        updateTopGamesUI();
         return topGamesGrid;
     }
+
+    private void updateTopGamesUI() {
+        if (topGamesGrid == null) return;
+
+        // remove old rows, keep header
+        topGamesGrid.getChildren().removeIf(
+                node -> GridPane.getRowIndex(node) != null && GridPane.getRowIndex(node) > 0
+        );
+
+        // show up to 10 values (fill rest with 0)
+        for (int i = 0; i < 10; i++) {
+            int score = (i < topGames.size()) ? topGames.get(i) : 0;
+            Label num = new Label(String.valueOf(i + 1));
+            Label entry = new Label(String.valueOf(score));
+            num.setStyle("-fx-font-size: 22px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-color: " + background_purple + ";" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3px 20px;" +
+                    "-fx-border-radius: 20;");
+            num.setAlignment(Pos.CENTER);
+            num.setPrefWidth(150);
+            num.setPrefHeight(25);
+            entry.setStyle("-fx-font-size: 22px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-color: " + background_purple + ";" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3px 20px;" +
+                    "-fx-border-radius: 20;");
+            entry.setAlignment(Pos.CENTER);
+            entry.setAlignment(Pos.CENTER);
+            entry.setPrefWidth(150);
+            entry.setPrefHeight(25);
+
+            topGamesGrid.addRow(i + 1, num, entry);
+        }
+    }
+
+
 
     private Scene buildGameScreen(Stage stage, MenuBar menu) {
         BorderPane root = new BorderPane();
@@ -754,7 +811,7 @@ public class JavaFXTemplate extends Application {
         HBox gameMenu = buildGameMenu(stage);
 
         GridPane leftPayoutBox = initPayoutBox();
-        VBox leftSide = new VBox(-80, leftPayoutBox);
+        VBox leftSide = new VBox(80, leftPayoutBox);
         GridPane rightTopScoresSide = initTopGames();         ///
         VBox rightSide = new VBox(80, rightTopScoresSide);        ///
         leftSide.setAlignment(Pos.CENTER);
@@ -762,7 +819,7 @@ public class JavaFXTemplate extends Application {
 
         VBox mainGame = new VBox(30, winningsBox, grid, gameMenu);
 
-        HBox mainScene = new HBox(150, leftSide, mainGame, rightSide);
+        HBox mainScene = new HBox(20, leftSide, mainGame, rightSide);
         mainScene.setAlignment(Pos.CENTER);
         mainScene.setPadding(new Insets(80, 0, 0, 0));
 
@@ -783,7 +840,6 @@ public class JavaFXTemplate extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Keno");
         primaryStage.setScene(buildIntroSceen(primaryStage));
-//        primaryStage.setScene(buildGameScreen(primaryStage));
         primaryStage.show();
     }
 }
