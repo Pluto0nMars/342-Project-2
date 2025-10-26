@@ -64,10 +64,12 @@ public class JavaFXTemplate extends Application {
     private static final String SELECTED_COLOR = "#778899";
     private boolean isNewLook = false;
 
-    /// like do we need this????????????????
-    /// /// like do we need this????????????????
-    /// /// like do we need this????????????????
-    /// /// like do we need this????????????????
+    boolean isFullScreen;
+    boolean wasMaximized;
+    double width;
+    double height;
+
+
     public static void main(String[] args) {
         // TODO Auto-generated method stub
         launch(args);
@@ -533,16 +535,30 @@ public class JavaFXTemplate extends Application {
         Label welcomeLabel = createKenoLabel("WELCOME TO KENO!");
         Button playButton = createPlayButton();
 
+
         playButton.setOnAction(e -> {
+            wasMaximized = stage.isMaximized();
+            width = stage.getWidth();
+            height = stage.getHeight ();
+
             Scene gameScene = buildGameScreen(stage, menubar);
             stage.setScene(gameScene);
+
+            // restore same size/maximized state
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            } else {
+                stage.setWidth(width);
+                stage.setHeight(height);
+            }
         });
 
         VBox center = new VBox(30, welcomeLabel, playButton);
         center.setAlignment(Pos.CENTER);
         root.setTop(menubar);
         root.setCenter(center);
-        root.setStyle("-fx-text-fill: orange;" + "-fx-background-color: " + background_purple + ";"
+        root.setStyle(
+            "-fx-text-fill: orange;" + "-fx-background-color: " + background_purple + ";"
             + "-fx-font-size: 18 px;" +
             "-fx-font-weight: bold;");
 
@@ -789,6 +805,13 @@ public class JavaFXTemplate extends Application {
     // the MAIN scene of the project. Encoroporates all of the game GUI elements
     // whos children encorporate the game logic
     private Scene buildGameScreen(Stage stage, MenuBar menu) {
+        if (wasMaximized){
+            stage.setMaximized(true);
+        }
+        else{
+            stage.setWidth(width);
+            stage.setHeight(height);
+        }
         BorderPane root = new BorderPane();
         MenuBar menubar = createMenuBar(stage, root);
         root.setTop(menubar);
