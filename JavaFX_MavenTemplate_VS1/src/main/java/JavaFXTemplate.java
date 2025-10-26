@@ -473,6 +473,7 @@ public class JavaFXTemplate extends Application {
                         "Spot 8: 1 in 9.7\n" +
                         "Spot 10: 1 in 9.1"
         );
+
 //        alert.getDialogPane().setStyle("-fx-background-color: #222831;");
         alert.showAndWait();
     }
